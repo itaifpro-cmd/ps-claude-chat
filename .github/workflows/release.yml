@@ -1,1 +1,25 @@
+# Gehört ins öffentliche Repo itaifpro-cmd/ps-claude-chat unter .github/workflows/release.yml.
+# Macht aus jedem Tag v*, den die Release-Pipeline dieses Repos per Deploy Key dort pusht, ein Release.
+# Der Commit hinter dem Tag enthält nur claude-chat.ccx und die Prüfsumme.
+name: Release
 
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sha256sum -c claude-chat.ccx.sha256
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" claude-chat.ccx claude-chat.ccx.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Claude Chat ${GITHUB_REF_NAME#v}" \
+            --notes "Photoshop-Panel Claude Chat ${GITHUB_REF_NAME#v}. Installation: claude-chat.ccx herunterladen und doppelklicken."
